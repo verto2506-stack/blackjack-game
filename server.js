@@ -11,11 +11,15 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || '*',
+  credentials: true
+}));
 app.use(express.json());
 
 // Database setup
-const db = new sqlite3.Database('./blackjack.db', (err) => {
+const dbPath = process.env.DATABASE_PATH || './blackjack.db';
+const db = new sqlite3.Database(dbPath, (err) => {
   if (err) console.error(err.message);
   else console.log('Conectado ao banco de dados SQLite');
 });
@@ -49,7 +53,7 @@ db.serialize(() => {
 });
 
 // JWT Secret
-const JWT_SECRET = process.env.JWT_SECRET || 'sua_chave_secreta_super_segura';
+const JWT_SECRET = process.env.JWT_SECRET || 'sua_chave_secreta_super_segura_2024';
 
 // Middleware de autenticação
 const authenticate = (req, res, next) => {
@@ -293,6 +297,13 @@ app.get('/api/user/history', authenticate, (req, res) => {
   });
 });
 
+// Health check
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'OK', timestamp: new Date() });
+});
+
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });
+
+module.exports = app;
